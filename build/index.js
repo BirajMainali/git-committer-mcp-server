@@ -52,23 +52,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         switch (name) {
             case "git-changes-commit-message": {
                 const diff = await getGitChanges(REPOSITORY_PATH);
+                const formattedDiff = JSON.stringify(diff, null, 2);
                 return {
                     content: [{
-                        type: "text",
-                        text: `
-                        Write a lowercase commit message from this diff using conventional format: feat, fix(ctx), chore(ctx), or refac(ctx). Add colon after prefix. Only return the message.
-                        \`\`\`diff
-                            ${JSON.stringify(diff, null, 2)}
-                        \`\`\`
-                        ### Example commit messages:
-                        - feat: add new feature
-                          Description: Introduced a new feature to enhance functionality.
-                        - fix(ctx): fix bug in context
-                          Description: Resolved an issue in the context module causing unexpected behavior.
-                        - fix(user): fix bug in user module
-                          Description: Fixed a bug in the user module that prevented proper user authentication.
-                        `,
-                    }],
+                            type: "text",
+                            text: `Here is the Git diff of the current repository. Please review the changes and provide a meaningful commit message based on this diff:\n\n\`\`\`diff\n${formattedDiff}\n\`\`\`\n`,
+                        }],
                 };
             }
             case "git-changes-commit": {
@@ -76,9 +65,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await commitChanges(REPOSITORY_PATH, message);
                 return {
                     content: [{
-                        type: "text",
-                        text: `Successfully committed with message: ${message}`,
-                    }],
+                            type: "text",
+                            text: `Successfully committed with message: ${message}`,
+                        }],
                 };
             }
             default: {
@@ -89,9 +78,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     catch (error) {
         return {
             content: [{
-                type: "text",
-                text: `Error: ${error?.message}`,
-            }],
+                    type: "text",
+                    text: `Error: ${error?.message}`,
+                }],
         };
     }
 });
@@ -101,7 +90,6 @@ async function getGitChanges(input) {
         await executeAsync(`cd ${cwd}`);
         const { stdout: diffOutput } = await executeAsync('git diff HEAD', { cwd });
         const { stdout: statusOutput } = await executeAsync('git status --porcelain', { cwd });
-
         const changes = {
             modified: [],
             added: [],
@@ -110,7 +98,6 @@ async function getGitChanges(input) {
         };
         statusOutput.split('\n').filter(Boolean).forEach(line => {
             const [status, file] = [line.slice(0, 2).trim(), line.slice(3)];
-
             if (status.includes('M'))
                 changes.modified.push(file);
             if (status.includes('A'))
