@@ -30,8 +30,8 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
                 },
             },
             {
-                name: "git-changes-commit",
-                description: "Commit changes to the Git repository. This tool allows you to save your changes with a meaningful commit message. Use this tool after extracting the Git diff to finalize your changes in the repository.",
+                name: "push-changes",
+                description: "Commit and push the changes to the Git repository. This tool allows you to push your changes with a meaningful commit message. Before performing the push please generate a commit message using the 'git-changes-commit-message' tool.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -60,13 +60,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                         }],
                 };
             }
-            case "git-changes-commit": {
+            case "push-changes": {
                 const { message } = args;
                 await pushChanges(REPOSITORY_PATH, message);
                 return {
                     content: [{
                             type: "text",
-                            text: `Successfully committed with message: ${message}`,
+                            text: `Successfully pushed with message: ${message}`,
                         }],
                 };
             }
