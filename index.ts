@@ -76,7 +76,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             case "git-changes-commit": {
                 const { message } = args as { message: string };
-                await commitChanges(REPOSITORY_PATH, message);
+                await pushChanges(REPOSITORY_PATH, message);
                 return {
                     content: [{
                         type: "text",
@@ -140,12 +140,13 @@ async function getGitChanges(input: string) {
     }
 }
 
-async function commitChanges(path: string, message: string) {
+async function pushChanges(path: string, message: string) {
     try {
         const cwd = path || process.cwd();
         await executeAsync(`cd ${cwd}`);
         await executeAsync(`git add --all`, { cwd });
         await executeAsync(`git commit -m "${message}"`, { cwd });
+        await executeAsync(`git push`, { cwd });
     } catch (error: any) {
         throw new Error(`Failed to commit changes: ${error.message}`);
     }
