@@ -65,10 +65,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             case "git-changes-commit-message": {
                 const diff = await getGitChanges(REPOSITORY_PATH);
+                const formattedDiff = JSON.stringify(diff, null, 2);
                 return {
                     content: [{
                         type: "text",
-                        text: `Here is the Git diff of the current repository, Please provide a commit message based on this diff.\n\n\`\`\`diff\n${JSON.stringify(diff)}\n\`\`\`\n\n`,
+                        text: `Here is the Git diff of the current repository. Please review the changes and provide a meaningful commit message based on this diff:\n\n\`\`\`diff\n${formattedDiff}\n\`\`\`\n`,
                     }],
                 };
             }
@@ -104,6 +105,7 @@ async function getGitChanges(input: string) {
     try {
         const cwd = input || process.cwd();
         await executeAsync(`cd ${cwd}`);
+
         const { stdout: diffOutput } = await executeAsync('git diff HEAD', { cwd });
         const { stdout: statusOutput } = await executeAsync('git status --porcelain', { cwd });
 
@@ -120,7 +122,6 @@ async function getGitChanges(input: string) {
             if (status.includes('A')) changes.added.push(file);
             if (status.includes('D')) changes.deleted.push(file);
         });
-
         let currentFile = '';
         diffOutput.split('\n').forEach(line => {
             if (line.startsWith('diff --git')) {
